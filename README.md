@@ -136,6 +136,7 @@ Based on the training configurations of the VL-Rethinker family, it's recommende
 
 
 ## 🚀Quick Start
+The proposed algorithm is implemented with the [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF) framework.
 
 ### Installations
 Please see [the installation instructions](installation.md).
@@ -148,10 +149,20 @@ Here we provide an alternative evaluation approach. It offers the following bene
 - Convenient: Evaluation without time-consuming API calls. Judgement made by our rule-based functions align with LLM Judges.
 - Train-Test Aligned: the evaluation re-uses the correctness judgement of training to minimize the gap between training and test-time evaluation.
 
+The evaluation is integrated with the OpenRLHF framework. 
+```bash
+bash ./scripts/eval_7b.sh [benchmark] [modelname] [modelpath]
+```
+
 
 
 ### Training
-In progress.
+Run the following.
+```bash
+bash ./scripts/train_vlm_7b.sh
+```
+Hyperparameters:
+(TBA)
 
 ## Dataset
 High-Quality training queries are crucial factors to the success of RL training. We curate a 16K query set based on existing datasets, which
@@ -165,10 +176,10 @@ We will release the dataset soon.
 If you find this work useful, please give us a free cite:
 ```bibtex
 @article{VLRethinker,
-    title={AceCoder: Acing Coder RL via Automated Test-Case Synthesis},
-    author={Zeng, Huaye and Jiang, Dongfu and Wang, Haozhe and Nie, Ping and Chen, Xiaotong and Chen, Wenhu},
+    title={VL-Rethinker: Incentivizing Self-Reflection of Vision-Language Models with Reinforcement Learning},
+    author={Wang, Haozhe and Qu, Chao and Huang, Zuming and Chu, Wei and Fangzhen, Lin and Wenhu Chen},
     journal={ArXiv},
     year={2025},
-    volume={2502.01718}
+    volume={TBA}
 } -->
 ```
