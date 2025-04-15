@@ -127,7 +127,7 @@
               <h2 class="title is-3">Introduction</h2>
               <div class="content has-text-justified">
                 <p>
-                    Recently, slow-thinking systems like GPT-o1 and DeepSeek-R1 have demonstrated great potential in solving challenging problems through explicit reflection. However, their multimodal reasoning capabilities remain on par with fast-thinking models. <u>In this paper, we aim to enhance the slow-thinking capabilities of vision-language models using reinforcement learning (without relying on distillation) to advance the state of the art. </u>
+                    Recently, slow-thinking systems like GPT-o1 and DeepSeek-R1 have demonstrated great potential in solving challenging problems through explicit reflection. They significantly outperform the best fast-thinking models, such as GPT-4o, on various math and science benchmarks. However, their multimodal reasoning capabilities remain on par with fast-thinking models. For instance, GPT-o1's performance on benchmarks like MathVista, MathVerse, and MathVision is similar to fast-thinking models. <u>In this paper, we aim to enhance the slow-thinking capabilities of vision-language models using reinforcement learning (without relying on distillation) to advance the state of the art. </u>
                 </p>
               </div>
             </div>
@@ -162,40 +162,40 @@
             </div>
           </div>
   
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">The Vanishing Advantages Problem</h2>
+              <div class="content has-text-justified">
+                <p>
+                    Our analysis shows the standard GRPO with binary correctness rewards suffers from the vanishing advantages problem, where the amount of zero advantages increase as training progresses. This problem is severe especially for 72B training. As the figure suggests, the percentage of examples exhibiting non-zero advantages steadily declines from approximately 40\% to below 20\% within 256 gradient steps. These observations motivate our approach of <u>Selective Sample Replay</u>.
+                </p>
+                <div class="box m-5">
+                    <div class="content has-text-centered">
+                      <img src="static/images/vanishing_adv.png" alt="main" class="center" width="80%"/>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">Qualitative Results of VL-Rethinker</h2>
+              <div class="content has-text-justified">
+                <p>
+                    We train <u>VL-Rethinker</u> with <u>SSR</u> and <u>Forced Rethinking</u>, to empower the ability of deliberate thinking. Intriguingly, as illustrated in figure, VL-Rethinker even identify flaws in the given problem when checking its initial reasoning through rethinking, showcasing a form of emergent metacognitive ability.
+                </p>
+                <div class="box m-5">
+                    <div class="content has-text-centered">
+                      <img src="static/images/rethinking.png" alt="RL results" class="center" width="80%"/>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+
           <!-- <div class="columns is-centered has-text-centered">
-            <div class="column is-four-fifths">
-              <h2 class="title is-3">Best-of-N Results</h2>
-              <div class="content has-text-justified">
-                <p>
-                    We trained two reward model <a href="https://huggingface.co/TIGER-Lab/AceCodeRM-7B">AceCodeRM-7B</a> and <a href="https://huggingface.co/TIGER-Lab/AceCodeRM-32B">AceCodeRM-32B</a> on the constructed <a href="https://huggingface.co/datasets/TIGER-Lab/AceCodePair-300K">preference pairs</a>. We evaluate the performance of our reward models through the best-of-N experiments on the 4 popular coding benchmarks. Results show consistent improvement across all benchmarks, demonstrating the effectiveness of our reward models.
-                </p>
-                <div class="box m-5">
-                    <div class="content has-text-centered">
-                      <img src="static/images/ac_table2.png" alt="main best-of-N results" class="center" width="80%"/>
-                    </div>
-                  </div>
-              </div>
-            </div>
-          </div>
-
-
-          <div class="columns is-centered has-text-centered">
-            <div class="column is-four-fifths">
-              <h2 class="title is-3">RL Results</h2>
-              <div class="content has-text-justified">
-                <p>
-                    We perform RL training from three policy models: <a href="https://huggingface.co/Qwen/Qwen2.5-7B-Instruct">Qwen2.5-7B-Instruct</a> and <a href="https://huggingface.co/Qwen/Qwen2.5-Coder-7B">Qwen2.5-Coder-7B-Base</a> and <a href="https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct">Qwen2.5-Coder-7B-Instruct</a>. Two types of reward can be used, i.e. the trained reward model RM-7B and the rule-based reward, i.e. pass rate over the test cases in dataset. During training, we set the pass rate to be a binary reward, which is 1.0 when all test cases passed, otherwise 0. Similar to DeepSeek-R1, we also experiment with RL from the base model because SFT may cause the search space of the model to be stuck in the local minimum. Since coding is also a highly verifiable task like math, we include the Qwen2.5-Coder-7B-Base in our experiments. We see consisteny performance improvement across all benchmarks. And directly RL from the Base Qwen2.5-Coder model can get <b>25%</b> improvement on HumanEval-plus and <b>6%</b> on MBPP-plus within just <b>80</b> optimization steps.
-                </p>
-                <div class="box m-5">
-                    <div class="content has-text-centered">
-                      <img src="static/images/ac_table3.png" alt="RL results" class="center" width="80%"/>
-                    </div>
-                  </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="columns is-centered has-text-centered">
             <div class="column is-four-fifths">
               <h2 class="title is-3">Comparison with existing RM</h2>
               <div class="content has-text-justified">
@@ -225,7 +225,7 @@
                   </div>
               </div>
             </div>
-          </div> -->
+          </div> --> 
 
           <!-- <div class="columns is-centered has-text-centered">
             <div class="column is-four-fifths">
