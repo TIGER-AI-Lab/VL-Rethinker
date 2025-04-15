@@ -1,8 +1,8 @@
 # VL-Rethinker: Incentivizing Self-Reflection of Vision-Language Models with Reinforcement Learning
 
-<a target="_blank" href="">
+<a target="_blank" href="https://arxiv.org/abs/2504.08837">
 <img style="height:22pt" src="https://img.shields.io/badge/-Paper-red?style=flat&logo=arxiv"></a>
-<a target="_blank" href="https://github.com/TIGER-AI-Lab/VL-Rethinker">
+<a target="_blank" href="#">
 <img style="height:22pt" src="https://img.shields.io/badge/-Code-green?style=flat&logo=github"></a>
 <a target="_blank" href="https://tiger-ai-lab.github.io/VL-Rethinker/">
 <img style="height:22pt" src="https://img.shields.io/badge/-🌐%20Website-blue?style=flat"></a>
@@ -175,11 +175,10 @@ We will release the dataset soon.
 ## Citation
 If you find this work useful, please give us a free cite:
 ```bibtex
-@article{VLRethinker,
-    title={VL-Rethinker: Incentivizing Self-Reflection of Vision-Language Models with Reinforcement Learning},
-    author={Wang, Haozhe and Qu, Chao and Huang, Zuming and Chu, Wei and Fangzhen, Lin and Wenhu Chen},
-    journal={ArXiv},
-    year={2025},
-    volume={TBA}
-} -->
+@article{vl-rethinker,
+      title={VL-Rethinker: Incentivizing Self-Reflection of Vision-Language Models with Reinforcement Learning},
+      author = {Wang, Haozhe and Qu, Chao and Huang, Zuming and Chu, Wei and Lin, Fangzhen and Chen, Wenhu},
+      journal={arXiv preprint arXiv:2504.08837},
+      year={2025}
+}
 ```
