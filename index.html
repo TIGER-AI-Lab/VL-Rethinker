@@ -113,6 +113,139 @@
         </div>
     </section>
 
+    <section class="section">
+        <div class="container" style="margin-bottom: 2vh;margin-top: -6vh;">
+          <!-- Abstract. -->
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">🔔News</h2>
+              <div class="content has-text-justified">
+                <p>
+                    <b>🔥[2025-04] Our paper <a href="https://arxiv.org/abs/2504.08837">VL-Rethinker</a> and <a href="https://huggingface.co/collections/TIGER-Lab/vl-rethinker-67fdc54de07c90e9c6c69d09">Models</a> are out 🚀. We are actively working on releasing the training code and training queries!</b>
+                </p>
+              </div>
+              <h2 class="title is-3">Introduction</h2>
+              <div class="content has-text-justified">
+                <p>
+                    Recently, slow-thinking systems like GPT-o1 and DeepSeek-R1 have demonstrated great potential in solving challenging problems through explicit reflection. However, their multimodal reasoning capabilities remain on par with fast-thinking models. <u>In this paper, we aim to enhance the slow-thinking capabilities of vision-language models using reinforcement learning (without relying on distillation) to advance the state of the art. </u>
+                </p>
+              </div>
+            </div>
+          </div>
+          <!--/ Abstract. -->
+      </div>
+    </section>
+
+    <section class="hero is-light is-small">
+        <div class="hero-body has-text-centered">
+          <h1 class="title is-1 acecoder">
+            <span class="acecoder">VL-Rethinker</span>
+          </h1>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">Overview</h2>
+              <div class="content has-text-justified">
+                <p>We identified a critical limitation of GRPO especially for 72B training: <u>the vanishing advantages problem</u>. To mitigate this issue, we introduced a novel technique called <u>Selective Sample Replay (SSR)</u>. While this approach yields strong performance, the resulting RL-trained models exhibit limited self-reflection or self-verification. To further encourage slow-thinking, we introduce <u>Forced Rethinking</u>, which appends a textual rethinking trigger to the end of initial rollouts in RL training, explicitly enforcing a self-reflection reasoning step. 
+                </p>
+                <div class="content has-text-centered">
+                    <img src="static/images/overview.png" alt="algebraic reasoning" width="100%"/>
+                </div>
+                <p>
+                    By combining these two techniques, our model, <u>VL-Rethinker, advances state-of-the-art scores on MathVista, MathVerse, and MathVision</u> to achieve significantly to achieve 80.3\%, 61.8\% and 43.9\% respectively. VL-Rethinker also achieves open-source SoTA on multi-disciplinary benchmarks such as MMMU-Pro, EMMA, and MEGA-Bench, narrowing the gap with GPT-o1. Our empirical results show the effectiveness of our approaches.
+                </p>
+              </div>
+            </div>
+          </div>
+  
+          <!-- <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">Best-of-N Results</h2>
+              <div class="content has-text-justified">
+                <p>
+                    We trained two reward model <a href="https://huggingface.co/TIGER-Lab/AceCodeRM-7B">AceCodeRM-7B</a> and <a href="https://huggingface.co/TIGER-Lab/AceCodeRM-32B">AceCodeRM-32B</a> on the constructed <a href="https://huggingface.co/datasets/TIGER-Lab/AceCodePair-300K">preference pairs</a>. We evaluate the performance of our reward models through the best-of-N experiments on the 4 popular coding benchmarks. Results show consistent improvement across all benchmarks, demonstrating the effectiveness of our reward models.
+                </p>
+                <div class="box m-5">
+                    <div class="content has-text-centered">
+                      <img src="static/images/ac_table2.png" alt="main best-of-N results" class="center" width="80%"/>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">RL Results</h2>
+              <div class="content has-text-justified">
+                <p>
+                    We perform RL training from three policy models: <a href="https://huggingface.co/Qwen/Qwen2.5-7B-Instruct">Qwen2.5-7B-Instruct</a> and <a href="https://huggingface.co/Qwen/Qwen2.5-Coder-7B">Qwen2.5-Coder-7B-Base</a> and <a href="https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct">Qwen2.5-Coder-7B-Instruct</a>. Two types of reward can be used, i.e. the trained reward model RM-7B and the rule-based reward, i.e. pass rate over the test cases in dataset. During training, we set the pass rate to be a binary reward, which is 1.0 when all test cases passed, otherwise 0. Similar to DeepSeek-R1, we also experiment with RL from the base model because SFT may cause the search space of the model to be stuck in the local minimum. Since coding is also a highly verifiable task like math, we include the Qwen2.5-Coder-7B-Base in our experiments. We see consisteny performance improvement across all benchmarks. And directly RL from the Base Qwen2.5-Coder model can get <b>25%</b> improvement on HumanEval-plus and <b>6%</b> on MBPP-plus within just <b>80</b> optimization steps.
+                </p>
+                <div class="box m-5">
+                    <div class="content has-text-centered">
+                      <img src="static/images/ac_table3.png" alt="RL results" class="center" width="80%"/>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">Comparison with existing RM</h2>
+              <div class="content has-text-justified">
+                <p>
+                  Existing top-ranked reward models on Reward Bench can perform pretty bad for best-of-N sampling in the coding scenarion, and sometime can underperform the greedy results. However, our AceCodeRM-7B consistently outperform them with an average of <b>6.9</b> improvement 
+                </p>
+                <div class="box m-5">
+                    <div class="content has-text-centered">
+                      <img src="static/images/ac_table4.png" alt="Comparion with other RM" class="center" width="80%"/>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">Test case filtering matters</h2>
+              <div class="content has-text-justified">
+                <p>
+                  We also conduct experiments to investigate how filtering the test cases with a proxy model can affect the results. As shown in table, training RM on data after the filtering improve the performance significantly, especially for those hard code questions like MBPP-Plus and BigCodeBench-Hard (C/I). We believe this is because the test case filtering can ensure the remaining ones are consistent with each other and thus point to the same implicit program, which improves the quality of the rewards. 
+                </p>
+                <div class="box m-5">
+                    <div class="content has-text-centered">
+                      <img src="static/images/ac_table5.png" alt="Test case filtering matters" class="center" width="80%"/>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div> -->
+
+          <!-- <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">RM backbone matters</h2>
+              <div class="content has-text-justified">
+                <p>
+                  We show that Qwen2.5-Coder is a better backbone for the reward model compared to Llama-3.1-8B. This is because the Qwen2.5-Coder models have been pre-trained on way more code-related data compared to the Llama-3.1 models, and thus more knowledgeable when tuning it into a reward model.
+                </p>
+                <div class="box m-5">
+                    <div class="content has-text-centered">
+                      <img src="static/images/ac_table6.png" alt="RM Backbone Matters" class="center" width="80%"/>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div> -->
+
+        </div>
+      </section>
+
 	<!-- BibTeX citation -->
 	<section class="section" id="BibTeX">
 	    <div class="container is-max-desktop content">
