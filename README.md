@@ -18,8 +18,10 @@
 <span style="color:#183385; font-size: 14pt; font-family: Roboto, Helvetica, Arial, Heveltica Neue, sans-serif">
      <b>Authors:</b>
      <a class="name" target="_blank" href="https://HaozheH3.github.io">Haozhe Wang</a>, 
-     <a class="name" target="_blank" href="">Wei Chu</a>, 
-     <a class="name" target="_blank" href="#">Fangzhen Lin</a>,
+     <a class="name" target="_blank" href="">Chao Qu</a>, 
+     <a class="name" target="_blank" href="">Zuming Huang</a>, 
+     <a class="name" target="_blank" href="https://weichu.github.io/">Wei Chu</a>, 
+     <a class="name" target="_blank" href="https://cse.hkust.edu.hk/~flin/">Fangzhen Lin</a>,
      <a class="name" target="_blank" href="https://wenhuchen.github.io/">Wenhu Chen</a>&nbsp; 
 
 <!-- ## 🔥News
@@ -49,7 +51,7 @@ We are training 32B and further enhancing these models. Stay Tuned!
 
 
 ## Performance
-See our [website](https://tiger-ai-lab.github.io/VL-Rethinker/) or [paper]() for detailed performance report.
+See our [website](https://tiger-ai-lab.github.io/VL-Rethinker/) or [paper](https://arxiv.org/abs/2504.08837) for detailed performance report.
 
 
 
