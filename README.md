@@ -1,8 +1,8 @@
 # VL-Rethinker: Incentivizing Self-Reflection of Vision-Language Models with Reinforcement Learning
 
-<a target="_blank" href="">
+<a target="_blank" href="https://arxiv.org/abs/2504.08837">
 <img style="height:22pt" src="https://img.shields.io/badge/-Paper-red?style=flat&logo=arxiv"></a>
-<a target="_blank" href="https://github.com/TIGER-AI-Lab/VL-Rethinker">
+<a target="_blank" href="#">
 <img style="height:22pt" src="https://img.shields.io/badge/-Code-green?style=flat&logo=github"></a>
 <a target="_blank" href="https://tiger-ai-lab.github.io/VL-Rethinker/">
 <img style="height:22pt" src="https://img.shields.io/badge/-🌐%20Website-blue?style=flat"></a>
@@ -18,8 +18,10 @@
 <span style="color:#183385; font-size: 14pt; font-family: Roboto, Helvetica, Arial, Heveltica Neue, sans-serif">
      <b>Authors:</b>
      <a class="name" target="_blank" href="https://HaozheH3.github.io">Haozhe Wang</a>, 
-     <a class="name" target="_blank" href="">Wei Chu</a>, 
-     <a class="name" target="_blank" href="#">Fangzhen Lin</a>,
+     <a class="name" target="_blank" href="">Chao Qu</a>, 
+     <a class="name" target="_blank" href="">Zuming Huang</a>, 
+     <a class="name" target="_blank" href="https://weichu.github.io/">Wei Chu</a>, 
+     <a class="name" target="_blank" href="https://cse.hkust.edu.hk/~flin/">Fangzhen Lin</a>,
      <a class="name" target="_blank" href="https://wenhuchen.github.io/">Wenhu Chen</a>&nbsp; 
 
 <!-- ## 🔥News
@@ -28,7 +30,7 @@
 
 
 ## Overview
-![overview](./assets/overview-2.pdf)
+![overview](./assets/overview-2.jpg)
 
 <details><summary>Abstract</summary> 
 Recently, slow-thinking systems like GPT-o1 and DeepSeek-R1 have demonstrated great potential in solving challenging problems through explicit reflection. They significantly outperform the best fast-thinking models, such as GPT-4o, on various math and science benchmarks. However, their multimodal reasoning capabilities remain on par with fast-thinking models. For instance, GPT-o1's performance on benchmarks like MathVista, MathVerse, and MathVision is similar to fast-thinking models. In this paper, we aim to enhance the slow-thinking capabilities of vision-language models using reinforcement learning (without relying on distillation) to advance the state of the art. First, we adapt the GRPO algorithm with a novel technique called Selective Sample Replay (SSR) to address the vanishing advantages problem. While this approach yields strong performance, the resulting RL-trained models exhibit limited self-reflection or self-verification. 
@@ -49,7 +51,7 @@ We are training 32B and further enhancing these models. Stay Tuned!
 
 
 ## Performance
-See our [website](https://tiger-ai-lab.github.io/VL-Rethinker/) or [paper]() for detailed performance report.
+See our [website](https://tiger-ai-lab.github.io/VL-Rethinker/) or [paper](https://arxiv.org/abs/2504.08837) for detailed performance report.
 
 
 
@@ -175,11 +177,10 @@ We will release the dataset soon.
 ## Citation
 If you find this work useful, please give us a free cite:
 ```bibtex
-@article{VLRethinker,
-    title={VL-Rethinker: Incentivizing Self-Reflection of Vision-Language Models with Reinforcement Learning},
-    author={Wang, Haozhe and Qu, Chao and Huang, Zuming and Chu, Wei and Fangzhen, Lin and Wenhu Chen},
-    journal={ArXiv},
-    year={2025},
-    volume={TBA}
-} -->
+@article{vl-rethinker,
+      title={VL-Rethinker: Incentivizing Self-Reflection of Vision-Language Models with Reinforcement Learning},
+      author = {Wang, Haozhe and Qu, Chao and Huang, Zuming and Chu, Wei and Lin, Fangzhen and Chen, Wenhu},
+      journal={arXiv preprint arXiv:2504.08837},
+      year={2025}
+}
 ```
