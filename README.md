@@ -54,7 +54,20 @@ We are training 32B and further enhancing these models. Stay Tuned!
 See our [website](https://tiger-ai-lab.github.io/VL-Rethinker/) or [paper](https://arxiv.org/abs/2504.08837) for detailed performance report.
 
 
+## Selective Sample Replay (SSR)
 
+Training 72B models on publicly collected queries reveals "vanishing advantages," a phenomenon where rapid saturation in large models drastically reduces effective training samples. The concurrent work [DAPO](https://arxiv.org/abs/2503.14476) on LLMs, made a similar observation.
+
+DAPO combats this by filtering ineffective queries for gradient stability.Different from this gradient perspective, our method, Selective Sample Replay (SSR), takes an active learning perspective. Drawing a similar merit from Prioritized Experience Replay, SSR re-arranges training samples based on their informativeness -- examples with high advantages, which lie near the model's capability limits (i.e., correct responses to queries the model likely fails), are particularly informative. This active selection focuses training on samples most likely to contribute to model improvement, thereby pushing training efficiency.
+
+The implementation for SSR is also simple. In addition to code in `active_sampling() @openrlhf/trainer/ppo_utils/replay_buffer.py`. Here is a pseudocode for the key idea of SSR.
+```python
+effective_qas = rule_out_zero(candidates)
+p = normalize_adv(effective_qas, alpha=1)
+selection = np.random.choice(np.arange(len(effective_qas)), size=size, p=p))
+```
+
+Note: For different scenarios, e.g., on-policy or off-policy, the choice of `candidates`, `size` can be different. 
 
 ## Inference 
 Our models are established on top of the Qwen2.5-VL family. So we include a simple use case here, and refer the readers to [the standard inference procedure of Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL).
