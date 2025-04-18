@@ -304,8 +304,7 @@ class NaiveReplayBuffer(ABC):
         drop_maxlen: bool = False,
         maxlen: int = 10**8,
         train_batch_size: int = 64, 
-        use_pos: bool = False,
-        refill_factor: int = 2
+        use_pos: bool = False
     ) -> None:
         super().__init__()
         self.sample_batch_size = sample_batch_size
@@ -323,8 +322,6 @@ class NaiveReplayBuffer(ABC):
         self.sample_num = 0
         self.train_batch_size = train_batch_size 
         self.use_pos = use_pos
-        self.refill_factor = refill_factor
-        print(f"===> [verbose] The refill factor for SSR is {refill_factor}")
         
 
     @torch.no_grad()
@@ -395,75 +392,87 @@ class NaiveReplayBuffer(ABC):
         shuffled_indexes = shuffle_questions(questions)
         self.shuffled_indexes = shuffled_indexes
     
-    def shuffle_for_filter_mode(self, do_ssr=False):
+    def active_sampling(self, do_ssr=False):
         print(f'!!!! [debug] shuffling for filter mode, num items = {len(self.items)}')
         questions = np.arange(len(self.items))
         diffs = [item.advantages[-1].item() for item in self.items]
-        rewards = [item.info['reward'] for item in self.items]
-        
+        rewards = [item.info['reward'] for item in self.items] # already float
+        mean_rewards = np.mean([item.info['round0_correctness'] for item in self.items])
         non_zero_items = []
         zero_questions = []
         pos_items = []
         non_zero_questions = []
-
+        stats = {}
         for question, diff, rew in zip(questions, diffs, rewards):
-            # if 0.05<diff <0.95 or (diff>0.95 and np.random.uniform()<0.3): # allneg or allcorrect
-            #     non_zero_items.append((question, diff))
-            # else:
-            #     zero_questions.append(question)
             if diff==0:
                 if rew>0.95:
                     pos_items.append(question)
                 zero_questions.append(question)
             else:
                 non_zero_questions.append(question)
+           
+        zero_percentage = len(zero_questions)/len(questions)
+        ret_info = {"mean_reward": mean_rewards, 
+                    "initial_saturation": zero_percentage}
+        for k in ['ALLTrue','ALLFalse','Easy', 'Medium','Hard']:
+            ret_info[f'initial_{k}'] = 0.
+            stats[f'initial_{k}'] = np.mean([item.info[f'round0_{k}'] for item in self.items])
+         
+        ret_info.update(stats)
+        
         seed = 42
         random.seed(seed)
         random.shuffle(non_zero_questions)
         idxlist = non_zero_questions+zero_questions
-        # for idx in idxlist:
-        #     print(f"[debug] r{self.items[idx].info['reward']} a{self.items[idx].advantages[0]}")
-        self.shuffled_indexes = idxlist 
         
-        # print(f'!!!! [debug] {len(zero_questions)}/{len(idxlist)} useless, peek shuffled diffs', [self.items[idx].info['difficulty'] for idx in idxlist[:20]], [self.items[idx].info['difficulty'] for idx in idxlist[-20:]])
         print(f'!!!! [debug] {len(zero_questions)}/{len(idxlist)} qas have zero advantages, useless')
         ratio = len(zero_questions)/len(idxlist)
-        
-        # if len(non_zero_questions)<self.train_batch_size:
-        numtotal = len(idxlist)//self.refill_factor # min(self.train_batch_size//2, len(idxlist)//2) # I add //2 here, previously no divide
-        print(f'!!!! [debug] warning: in filter mode, the remaining non-zero is too scarce, {len(non_zero_questions)} qas will repeat to {numtotal}')
-        # else:
-        #     num_steps = len(non_zero_questions)//self.train_batch_size
-        #     remaining = len(non_zero_questions)%self.train_batch_size
-        #     if remaining==0:
-        #         numtotal = len(non_zero_questions)
-        #     else: numtotal = (num_steps+1)*self.train_batch_size
-        #     print(f'!!!! [debug] warning: in filter mode, {len(non_zero_questions)} qas will repeat to {numtotal}')
-        
-        ratio = 0.1 #  if self.use_pos else 0.0
-        num_pos = int(ratio*len(non_zero_questions))
-        if num_pos==0: # there are no non-zero questions 
-            num_pos = min(numtotal, len(pos_items))
-            print(f'!!!! [debug] warning:  because non-zero questions {len(non_zero_questions)} qas is scarce, we include more positive items')
-        elif len(non_zero_questions) < numtotal//2:
-            print(f'!!!! [debug] warning:  because non-zero questions {len(non_zero_questions)} qas is scarce, we include more positive items')
-            num_pos = min(num_pos, numtotal//2-len(non_zero_questions))
-        
-        sel = non_zero_questions + pos_items[:num_pos]
-        sel_alist = np.array([abs(self.items[idx].advantages[0].item())+1e-4 for idx in sel])
-        sel_p = sel_alist/np.sum(sel_alist)
-        # num_total = len(self.items)//2
-        newlist = []
-        numiter = 0
-        while numtotal>0:
-            if numtotal>len(sel):
-                newlist.extend(sel)
-            else:
-                newlist.extend(np.random.choice(sel, size=numtotal, p=sel_p if do_ssr else None))
-            numiter += 1
-            numtotal -= len(sel)
-        print(f"!!!! [debug] SSR={do_ssr}, replay buffer repeat for {numiter} times to fill up nonzero questions")
-        self.items = [self.items[idx] for idx in newlist]
+        if not do_ssr: 
+            numtotal = len(idxlist)
+            newlist = []
+            numiter = 0
+            sel = non_zero_questions
+            while numtotal>0:
+                if numtotal>len(sel):
+                    newlist.extend(sel)
+                else:
+                    newlist.extend(np.random.choice(sel, size=numtotal, p=None))
+                numiter += 1
+                numtotal -= len(sel)
+            print(f"!!!! [debug] SSR=Filter, replay buffer repeat for {numiter} times to fill up nonzero questions")
+            self.items = [self.items[idx] for idx in newlist]
+            return ret_info
+        else:
+            numtotal = len(idxlist)//2 # min(self.train_batch_size//2, len(idxlist)//2) # I add //2 here, previously no divide
+            print(f'!!!! [debug] warning: in filter mode, the remaining non-zero is too scarce, {len(non_zero_questions)} qas will repeat to {numtotal}')
+            
+            ratio = 0.1  if self.use_pos else 0.0
+            num_pos = int(ratio*len(non_zero_questions))
+            if len(non_zero_questions)==0: # there are no non-zero questions 
+                num_pos = min(numtotal, len(pos_items))
+                print(f'!!!! [debug] warning:  because non-zero questions {len(non_zero_questions)} qas is scarce, we include more positive items')
+            elif len(non_zero_questions) < numtotal//2:
+                print(f'!!!! [debug] warning:  because non-zero questions {len(non_zero_questions)} qas is scarce, we include more positive items')
+                num_pos = min(num_pos, numtotal//2-len(non_zero_questions))
+            
+            sel = non_zero_questions + pos_items[:num_pos]
+            if len(non_zero_questions)==0:
+                sel = idxlist 
+                print(f"!!!! [warning] queries all-zero")
+            sel_alist = np.array([abs(self.items[idx].advantages[0].item())+1e-4 for idx in sel])
+            sel_p = sel_alist/np.sum(sel_alist)
+            newlist = []
+            numiter = 0
+            while numtotal>0:
+                if numtotal>len(sel):
+                    newlist.extend(sel)
+                else:
+                    newlist.extend(np.random.choice(sel, size=numtotal, p=sel_p if do_ssr else None))
+                numiter += 1
+                numtotal -= len(sel)
+            print(f"!!!! [debug] SSR={do_ssr}, replay buffer repeat for {numiter} times to fill up nonzero questions")
+            self.items = [self.items[idx] for idx in newlist]
+            return ret_info
         
     def normalize(self, attribute: str, strategy) -> None:
         assert attribute == "advantages"

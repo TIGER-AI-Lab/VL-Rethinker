@@ -209,7 +209,6 @@ class PPOTrainer(ABC):
             drop_maxlen=self.args.drop_maxlen, 
             maxlen=self.args.generate_max_len + prompt_max_len,
             train_batch_size=self.args.train_batch_size,
-            refill_factor=getattr(self.args, "refill_factor", 2),
             use_pos=("sft" in getattr(self.args, "advantage_estimator", "None")) and (getattr(self.args, "aux_loss_coef", 0.0)>0.0)
         )
 
@@ -413,6 +412,8 @@ class PPOTrainer(ABC):
             else: self.replay_buffer.normalize("advantages", self.strategy)
             
             print('!!!! [rbuffer] done.')
+            print('===> [verbose] waiting for all actors')
+            torch.distributed.barrier()
             status = self.ppo_train(steps)
             self.replay_buffer.clear()
             torch.cuda.empty_cache()
@@ -521,8 +522,9 @@ class PPOTrainer(ABC):
         torch.cuda.empty_cache()
         do_filter = not (getattr(self.strategy.args, "filter", "False") == "False")
         do_ssr = getattr(self.strategy.args, "filter", "False") == "SSR"
-        if do_filter:
-            self.replay_buffer.shuffle_for_filter_mode(do_ssr=do_ssr)
+        # if do_filter:
+        rbuffer_status = self.replay_buffer.active_sampling(do_ssr=do_ssr)
+        rbuffer_status = self.strategy.all_reduce(rbuffer_status)
         dataloader = DataLoader(
             self.replay_buffer,
             batch_size=self.replay_buffer.sample_batch_size,
@@ -597,6 +599,7 @@ class PPOTrainer(ABC):
                     status_mean[k] /= (cnt[k]+1e-4)
                 else: status_mean[k] /= len(status_list)
         torch.cuda.empty_cache()
+        status_mean.update(rbuffer_status)
         return status_mean
 
     def training_step(self, experience: Experience, global_steps, **kwargs) -> Dict[str, float]:
@@ -613,10 +616,9 @@ class PPOTrainer(ABC):
                 
         self.actor.train()
         validity = experience.validity
-        # TODO: this is a bad indicator to say that data is packed...
-        # import pdb; pdb.set_trace()
+        
         packing = getattr(self.strategy.args, "packing_samples", False)
-        # if isinstance(experience.sequences, list):
+        
         diffs = experience.info['difficulty']
         waits = None
         if packing:
@@ -652,9 +654,6 @@ class PPOTrainer(ABC):
             
             # rewards = experience.info['reward'] # tensor of (bsz,)
             waits = experience.info['round1_nwait']
-            # print(f'!!!! [debug] {type(waits)}', waits)
-            # bsz = rewards.shape[0]
-            # raw_rewards = rewards.unsqueeze(1).expand(bsz, num_actions)
                 
 
         # actor loss
@@ -689,20 +688,15 @@ class PPOTrainer(ABC):
         
         print('!!!! [training] step', kwargs['global_steps'], f'with {len(experience.sequences)} sample, shape={sequences.shape}')
         sft_only = getattr(self.strategy.args, "loss_version", "none") == "sft_only"
-        # print(f'!!!! [training] sft_only={sft_only}')
         skip = False 
         if sft_only: loss = aux_loss
         else: 
             advlist = [x[-1].item() for x in experience.advantages]
             nonzero = np.mean([x!=0 for x in advlist])
             print(f'!!!! [training] adv nonzero ratio', nonzero, 'kl penalty ratio', kl_penalty_coef)
-            # print(f'!!!! [debug] batch diffs {diffs}')
             loss = actor_loss + aux_loss * self.args.aux_loss_coef + kl_penalty_coef*actor_loss_dict.get("kl_penalty",0.0) + self.args.entropy_loss_coef * entropy_loss
             print('!!!! [training] iter', self.iter, f'actorloss={actor_loss.item()}, sftloss={aux_loss if isinstance(aux_loss,float) else aux_loss.item()}, final={loss.item()}, reward={experience.info["reward"]}, adv={advlist}, waits={experience.info["round1_nwait"]}, val={experience.validity}')
             
-            # if nonzero==0:
-            #     skip = True
-            #     print(f"!!!! [warning] we skip this backward since batch adv {advlist}")
         if not skip: 
             self.strategy.backward(loss, self.actor, self.actor_optim)
         del action_entropy
@@ -745,23 +739,34 @@ class PPOTrainer(ABC):
         for k, v in experience.info.items():
             # print(k,v)
             if k == "kl":
-                # status[k] = (
-                #     (v * experience.info["response_length"]).sum() / experience.info["response_length"].sum()
-                # ).item()
                 out_tokens = experience.info["response_length"] # list 
                 nomin = sum([x*y for x,y in zip(v,out_tokens)])
                 denom = sum(out_tokens)
                 status[k] = nomin/denom
-            elif k=='num_actions': continue
-            elif k=='round1_correctness': continue
-            elif k=='round1_diff':
-                vlist = experience.info[k]
-                valid_vlist = [x for x in vlist if x is not None]
+            elif k in {'num_actions', 'round1_diff'}: continue
+            elif k=='round1_correctness': 
+                # continue
+                r1c = experience.info['round1_correctness']
+                r0c = experience.info['round0_correctness']
+                tmp = dict(round1_average_improvement=0.0, round1_negative_rate=0.0, round1_positive_rate=0.0, round1_percentage=0.0)
+                final_results = []
+                diff = []
+                for aa,bb in zip(r0c, r1c):
+                    if bb<0: # not forced rethinking
+                        final_results.append(aa)
+                        continue 
+                    else: 
+                        final_results.append(bb)
+                        diff.append(bb-aa)
+                valid_vlist = diff 
+                tmp['round0_correctness'] = np.mean(final_results)
                 if len(valid_vlist)>0:
-                    status[k] = np.mean(valid_vlist)
-                    status['round1_negative_rate'] = np.mean([x<0 for x in valid_vlist])
-                    status['round1_positive_rate'] = np.mean([x>0 for x in valid_vlist])
-                    status['round1_percentage'] = len(valid_vlist)/len(vlist)
+                    tmp['round1_average_improvement'] = np.mean(valid_vlist)
+                    tmp['round1_negative_rate'] = np.mean([x<0 for x in valid_vlist])
+                    tmp['round1_positive_rate'] = np.mean([x>0 for x in valid_vlist])
+                    tmp['round1_percentage'] = len(valid_vlist)/len(r1c)
+                # print(f"!!!! [debug] round1 correctness {tmp}")
+                status.update(tmp)
             else:
                 if isinstance(v[0], str): continue 
                 status[k] = v.mean().item() if isinstance(v, torch.Tensor) else np.mean(v)
@@ -772,10 +777,11 @@ class PPOTrainer(ABC):
         if skip: return status 
         
         self.strategy.optimizer_step(self.actor_optim, self.actor, self.actor_scheduler, name="actor")
+        
         if self.ema_model:
             self.strategy.moving_average(self.actor, self.ema_model, self.ema_beta, "cuda")
 
-        
+        del experience.info, experience.sequences, experience.action_log_probs, experience.advantages, experience, loss
         # print(status)
         return status
 

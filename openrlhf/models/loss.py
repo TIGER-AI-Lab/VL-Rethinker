@@ -111,7 +111,7 @@ class PolicyLoss(nn.Module):
                         #     advantages[idx] = -0.25
                         sftloss += torch.sum(-log_probs[idx]*val_mask[idx]) # for convenience directly use logpratio, because old-logp has no grad 
                         ntokens += torch.sum(val_mask[idx]) 
-                        print(f'!!!! [debug] wait={wait} in {raw_rewards}')
+                        print(f'!!!! [debug] SFT with wait={wait} in {raw_rewards}')
             final_sftloss = sftloss/ntokens if ntokens>0. else 0.0 
             ret['sft_loss'] = final_sftloss
         ####################
