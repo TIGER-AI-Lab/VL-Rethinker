@@ -24,9 +24,9 @@
      <a class="name" target="_blank" href="https://cse.hkust.edu.hk/~flin/">Fangzhen Lin</a>,
      <a class="name" target="_blank" href="https://wenhuchen.github.io/">Wenhu Chen</a>&nbsp; 
 
-<!-- ## 🔥News
+## 🔥News
 
-- [2025/2/3] We release the [Paper](), and the [🤗 Models]() on Hugging Face.  -->
+- [2025/4/22] We release the dataset [🤗 ViRL39K](https://huggingface.co/datasets/TIGER-Lab/ViRL39K). It covers **comprehensive collection** of 39K queries including **eight categories**, and provides fine-grained **model-capability annotations** for data selection.
 
 
 ## Overview
@@ -40,8 +40,16 @@ To further encourage slow-thinking, we introduce Forced Rethinking, which append
 
 ## Release Progress
 - [x] models.
+- [x] data.
 - [ ] inference and evaluation code.
-- [ ] training code.
+- [x] training code.
+
+### Dataset
+**[ViRL39K](https://huggingface.co/datasets/TIGER-Lab/ViRL39K)** lays the foundation for our RL training. It has the following merits:
+- **high-quality** and **verifiable**: the QAs undergo rigorous filtering and quality control, removing problematic queries or ones that cannot be verified by rules.
+- covering **comprehensive** topics and categories: from grade school problems to broader STEM and Social topics; reasoning with charts, diagrams, tables, documents, spatial relationships, etc. 
+- with fine-grained **model-capability annotations**: it tells you what queries to use when training models at different scales.
+
 
 ### RL-ed Models
 - [VL-Rethinker-7B](https://huggingface.co/TIGER-Lab/VL-Rethinker-7B): undergoes the proposed SSR and Forced Rethinking training from Qwen2.5-VL-7B-Instruct.
@@ -168,7 +176,7 @@ The evaluation is integrated with the OpenRLHF framework.
 ```bash
 bash ./scripts/eval_7b.sh [benchmark] [modelname] [modelpath]
 ```
-
+**Note: for MMMU-Val we cannot reproduce Qwen2.5-VL with neither lmms_eval, vlmevalkit or our native evaluation. We greatly appreciate it if you could provide any insights into the correct means of reproducing it.**
 
 
 ### Training
@@ -179,12 +187,6 @@ bash ./scripts/train_vlm_7b.sh
 Hyperparameters:
 (TBA)
 
-## Dataset
-High-Quality training queries are crucial factors to the success of RL training. We curate a 16K query set based on existing datasets, which
-- includes diverse topics: perception, reasoning, scientific topics.
-- is meticulously selected and cleaned, leading to a collection of consolidated challenging queries. 
-
-We will release the dataset soon.
 
 
 ## Citation

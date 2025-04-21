@@ -447,8 +447,6 @@ class NaiveReplayBuffer(ABC):
             self.items = [self.items[idx] for idx in newlist]
             return ret_info
         else:
-            numtotal = len(idxlist)
-            print(f'!!!! [debug] warning: in filter mode, the remaining non-zero is too scarce, {len(non_zero_questions)} qas will repeat to {numtotal}')
             #######################
             # numtotal = len(idxlist)//2
             # ratio = 0.1 # 0.1  if self.use_pos else 0.0
@@ -478,12 +476,20 @@ class NaiveReplayBuffer(ABC):
             # print(f"!!!! [debug] SSR={do_ssr}, replay buffer repeat for {numiter} times to fill up nonzero questions")
             # self.items = [self.items[idx] for idx in newlist]
             ################
+            numtotal = len(idxlist)
+            print(f'!!!! [debug] warning: in filter mode, the remaining non-zero is too scarce, {len(non_zero_questions)} qas will repeat to {numtotal}')
             ratio = 0.1
             current_effective = []
             num_pos = int(ratio*len(non_zero_questions))
             sel = non_zero_questions + pos_items[:num_pos]
             sel = sel[:numtotal]
             current_effective = [self.items[ii] for ii in sel]
+            ######### added sampling from current_effective
+            sel_alist = np.array([abs(iitem.advantages[0].item())+1e-4 for iitem in current_effective])*1.0
+            sel_p = sel_alist/np.sum(sel_alist)
+            current_selected = np.random.choice(np.arange(len(current_effective)), size=min(len(idxlist)//2,len(current_effective)), p=sel_p)
+            current_effective = [current_effective[ii] for ii in current_selected]
+            ################
             sel = np.arange(len(self.keep_items))
             numtotal -= len(current_effective)
             sel_alist = np.array([abs(iitem.advantages[0].item())+1e-4 for iitem in list(self.keep_items)])*0.8
