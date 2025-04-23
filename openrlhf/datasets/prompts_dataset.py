@@ -1,8 +1,12 @@
+# /*
+#  * Modified by Haozhe Wang in 2025
+#  *
+#  * Licensed under the Apache License, Version 2.0 (the "License");
+#  */
 from torch.utils.data import Dataset
 from tqdm import tqdm
 import json
 
-default_img = "/home/ma-user/work/haozhe/workspace/lmm-r1/data/DynaMath/assets/dyna-logo.png"
 def preprocess_data(data, input_template=None, input_key="input", apply_chat_template=None) -> str:
     if apply_chat_template:
         chat = data[input_key]
@@ -40,6 +44,12 @@ elaborate_rethink="""Guidelines:
 - First understand the problem: understand what information is given in the text and understand what the images describes. Then think about what the problem is asking for and what knowledge the problem aims to examine. Finally, think about how to solve the problem step by step. Explain your solution in simple words that are easy to follow, assuming the readers are junior students who DOT NOT master well the relevant knowledge. 
 - **Regularly perform self-questioning, self-verification, self-correction to check your ongoing reasoning**, using connectives such as "Wait a moment", "Wait, does it seem right?", etc.
 - Remember to put your final answer within \\boxed{}.""",
+explain="""Guidelines:
+Understand what the problem is asking for, and what knowledge the problem aims to examine. 
+Explain the problem and your solution in simple words to a reader, assuming he has rare knowledge and poor mastery about the related concepts. 
+""",
+rethink="""Guidelines: 
+Please think step by step, and **regularly perform self-questioning, self-verification, self-correction to check your ongoing reasoning**, using connectives such as "Wait a moment", "Wait, does it seem right?", etc. Remember to put your final answer within \\boxed{}.""",
 )
 templates['none'] = ""
 templates['autocode'] = "Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n{}\n\n### Response:"
@@ -127,8 +137,10 @@ class PromptDataset(Dataset):
                     trigger = f"\n\n{templates['elaborate']}"
                 elif system_prompt == 'elaborate_rethink':
                     trigger = f"\n\n{templates['elaborate_rethink']}"
+                elif system_prompt == 'rethink':
+                    trigger = f"\n\n{templates['rethink']}"
                 else: 
-                    trigger = f"\n\n{templates['default']}"
+                    trigger = f"\n\n{templates[system_prompt]}"
                 q = data['question']
                 img = data.get('image', None)
                 imglist = []
@@ -214,14 +226,13 @@ class PromptDataset(Dataset):
         
 
         self.prompts = []
-        repeat = 1 
-        if controlled_shuffle>0:
-            repeat = controlled_shuffle
-            print(f"===> [verbose] controlled shuffle {controlled_shuffle} times")
+        repeat = 1 if controlled_shuffle==0 else controlled_shuffle
         for _ in range(repeat):
             for data in tqdm(dataset, desc="Preprocessing data", disable=not self.strategy.is_rank_0()):
                 prompt = self.preprocess_data(data, input_template, input_key, apply_chat_template, system_prompt)
                 self.prompts.append(prompt)
+        # print("!!!! peek", self.prompts[0])
+        
 
     def __len__(self):
         length = len(self.prompts)
@@ -229,3 +240,4 @@ class PromptDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.prompts[idx]
+

@@ -1,3 +1,9 @@
+# /*
+#  * Modified by Haozhe Wang in 2025
+#  *
+#  * Licensed under the Apache License, Version 2.0 (the "License");
+#  */
+
 import random
 from abc import ABC
 from dataclasses import dataclass
@@ -393,7 +399,7 @@ class NaiveReplayBuffer(ABC):
         shuffled_indexes = shuffle_questions(questions)
         self.shuffled_indexes = shuffled_indexes
     
-    def active_sampling(self, do_ssr=False):
+    def active_sampling(self, do_filter=False, do_ssr=False):
         print(f'!!!! [debug] shuffling for filter mode, num items = {len(self.items)}')
         if self.keep_items is None:
             self.keep_items = deque(maxlen=len(self.items)//2)
@@ -423,6 +429,7 @@ class NaiveReplayBuffer(ABC):
             stats[f'initial_{k}'] = np.mean([item.info[f'round0_{k}'] for item in self.items])
          
         ret_info.update(stats)
+        if not do_filter: return ret_info
         
         seed = 42
         random.seed(seed)
@@ -476,7 +483,7 @@ class NaiveReplayBuffer(ABC):
             # print(f"!!!! [debug] SSR={do_ssr}, replay buffer repeat for {numiter} times to fill up nonzero questions")
             # self.items = [self.items[idx] for idx in newlist]
             ################
-            numtotal = len(idxlist)
+            numtotal = len(idxlist)//2
             print(f'!!!! [debug] warning: in filter mode, the remaining non-zero is too scarce, {len(non_zero_questions)} qas will repeat to {numtotal}')
             ratio = 0.1
             current_effective = []
@@ -484,11 +491,17 @@ class NaiveReplayBuffer(ABC):
             sel = non_zero_questions + pos_items[:num_pos]
             sel = sel[:numtotal]
             current_effective = [self.items[ii] for ii in sel]
-            ######### added sampling from current_effective
-            sel_alist = np.array([abs(iitem.advantages[0].item())+1e-4 for iitem in current_effective])*1.0
-            sel_p = sel_alist/np.sum(sel_alist)
-            current_selected = np.random.choice(np.arange(len(current_effective)), size=min(len(idxlist)//2,len(current_effective)), p=sel_p)
-            current_effective = [current_effective[ii] for ii in current_selected]
+            if len(current_effective)>0:
+                ######### added sampling from current_effective
+                sel_alist = np.array([abs(iitem.advantages[0].item()) for iitem in current_effective])
+                sel_p = sel_alist/np.sum(sel_alist)
+                if sel_p.sum()<1.0:
+                    sel_p[-1] = 1.0 - np.sum(sel_p[:-1]) # make sure the sum == 1
+                # print(f"{sel_p};{sel_alist}")
+                # assert sel_p.sum()==1.0, f"debug: {sel_p};{np.sum(sel_alist)};{len(current_effective)}"
+                current_selected = np.random.choice(np.arange(len(current_effective)), size=min(len(idxlist)//2,len(current_effective)), p=sel_p)
+                current_effective = [current_effective[ii] for ii in current_selected]
+            print(f'!!!! [debug] current effective {len(current_effective)} qas')
             ################
             sel = np.arange(len(self.keep_items))
             numtotal -= len(current_effective)

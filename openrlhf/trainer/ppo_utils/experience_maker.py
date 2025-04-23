@@ -1,3 +1,9 @@
+# /*
+#  * Modified by Haozhe Wang in 2025
+#  *
+#  * Licensed under the Apache License, Version 2.0 (the "License");
+#  */
+
 import os
 import time
 from abc import ABC
@@ -475,28 +481,29 @@ class NaiveExperienceMaker(ABC):
             baseline = rewards.sum(-1, keepdim=True) / (args.n_samples_per_prompt) # mean of others 
             rewards = rewards - baseline
             
-            for iidx in range(len(rewards)):
-                if reshaped_nwait_round1[iidx].sum()>0: 
-                    # if advantage>0.125, meaning this is informative positive example 
-                    # - if it has native wait or keep into a correct response, we praise it
-                    isnative = reshaped_is_native[iidx]>0.5
-                    ischeck = reshaped_t1_diff[iidx]==0.0
-                    notmanywaits = reshaped_nwait_round1[iidx]<4.0
-                    old = rewards[iidx].cpu().numpy()
-                    oldstr = str(old)
-                    # praise = torch.ones_like(rewards[iidx])
-                    praiseflag = np.logical_and(notmanywaits,np.logical_or(isnative, ischeck))
-                    flag = False
-                    # print(f"[debug] native={isnative}, {reshaped_is_native[iidx]}, check={ischeck}, {reshaped_t1_diff[iidx]}, wait={notmanywaits}, {reshaped_nwait_round1[iidx]}")
-                    # for ii,(rvalue,pflag,wflag,macc) in enumerate(zip(rewards[iidx], praiseflag, notmanywaits, baseline[iidx])):
-                        #################
-                        # if pflag and rvalue>0.: 
-                        #     rewards[iidx][ii] = rvalue * 2.0
+            # for iidx in range(len(rewards)):
+            #     if reshaped_nwait_round1[iidx].sum()>0: 
+            #         # if advantage>0.125, meaning this is informative positive example 
+            #         # - if it has native wait or keep into a correct response, we praise it
+            #         isnative = reshaped_is_native[iidx]>0.5
+            #         ischeck = reshaped_t1_diff[iidx]==0.0
+            #         notmanywaits = reshaped_nwait_round1[iidx]<4.0
+            #         old = rewards[iidx].cpu().numpy()
+            #         oldstr = str(old)
+            #         # praise = torch.ones_like(rewards[iidx])
+            #         # praiseflag = np.logical_and(notmanywaits,np.logical_or(isnative, ischeck))
+            #         praiseflag = np.logical_and(notmanywaits,np.logical_or(isnative, ischeck))
+            #         flag = False
+            #         # print(f"[debug] native={isnative}, {reshaped_is_native[iidx]}, check={ischeck}, {reshaped_t1_diff[iidx]}, wait={notmanywaits}, {reshaped_nwait_round1[iidx]}")
+            #         for ii,(rvalue,pflag,wflag,macc) in enumerate(zip(rewards[iidx], praiseflag, notmanywaits, baseline[iidx])):
+                        ################
+                        # if pflag and rvalue>0.: # correct and native wait
+                        #     rewards[iidx][ii] = rvalue * 1.5
                         #     flag = True
                         # elif rvalue<0.0 and wflag:
                         #     rewards[iidx][ii] = rvalue * 0.5
                         #     flag = True 
-                        ##################
+                        #################
                         # if macc>0.98:
                         #     rewards[iidx][ii] = 1.0/8.0
                             
@@ -515,7 +522,7 @@ class NaiveExperienceMaker(ABC):
                     #             print('!!!! [debug] too many waits supressed.')
                     # old = rewards[iidx].cpu().numpy()
                     # new = rewards[iidx] * (1.0+scale_factor) # positive examples with wait will get x2 advantages
-                    if flag: print(f'!!!! [debug] {oldstr} ->{rewards[iidx].cpu().numpy()}')
+                    # if flag: print(f'!!!! [debug] {oldstr} ->{rewards[iidx].cpu().numpy()}')
                     # rewards[iidx] = new
             
             if do_longer:
@@ -1323,29 +1330,29 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                 else:
                     shaped_reward = -0.1
                 ########### it seems not proper to use additive rewards
-                # if not is_eval:
-                #     # rules:
-                #     # - round0 corret wait >  round1 self-verification/self-questioning >= round0 correct >  round1 self-correction
-                #     if r1c is None: # not forced rethinking
-                #         if final_correct>0.5: # correct and with native wait 
-                #             if 2>r0nw>0:
-                #                 shaped_reward = 1.1
-                #             elif r0nw>3: # don't want too many waits even if it finally gets correct
-                #                 shaped_reward = max(shaped_reward - r0nw*0.2, -0.1)
-                #     else: # forced rethinking 
-                #         if final_correct>0.5:
-                #             if 4>r1nw>0:
-                #                 if r1c[-1]<0.5: # self-verification or self-questioning
-                #                     shaped_reward = 1.1
-                #                 else: # self-correction
-                #                     shaped_reward = 0.9 
-                #             elif r1nw>3: 
-                #                 shaped_reward = max(shaped_reward - r1nw*0.2, -0.1)
-                #         else: # if it is currently incorrect, we may incentivize it to self reflection 
-                #             if 2>r1nw>0:
-                #                 shaped_reward = 0.2 
+                if not is_eval:
+                    # rules:
+                    # - round0 corret wait >  round1 self-verification/self-questioning >= round0 correct >  round1 self-correction
+                    if r1c is None: # not forced rethinking
+                        if final_correct>0.5: # correct and with native wait 
+                            if 3>r0nw>0:
+                                shaped_reward = 1.1
+                            else: # don't want too many waits even if it finally gets correct
+                                shaped_reward = max(shaped_reward - r0nw*0.2, -0.1)
+                    # else: # forced rethinking 
+                    #     if final_correct>0.5:
+                    #         if 4>r1nw>0:
+                    #             if r1c[-1]<0.5: # self-verification or self-questioning
+                    #                 shaped_reward = 1.1
+                    #             else: # self-correction
+                    #                 shaped_reward = 0.9 
+                    #         elif r1nw>3: 
+                    #             shaped_reward = max(shaped_reward - r1nw*0.2, -0.1)
+                    #     else: # if it is currently incorrect, we may incentivize it to self reflection 
+                    #         if 2>r1nw>0:
+                    #             shaped_reward = 0.2 
                             
-                # print(f"===> [verbose] shaped_reward={shaped_reward}, final_correct={final_correct}, r0nw={r0nw}, r1nw={r1nw}, r1c={r1c}")
+                print(f"===> [verbose] shaped_reward={shaped_reward}, final_correct={final_correct}, r0nw={r0nw}, r1nw={r1nw}, r1c={r1c}")
                 ########### not using fmt reward
                 # if format_type in ['confidence','nocode']:
                 #     if shaped_reward>0.99: 
@@ -2006,6 +2013,10 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                 is_valid = 1024>len(out_token)>30 # there should at least be some outputs
                 if not is_valid:
                     drop_reasons['too_short_or_too_long'] += 1 
+                    continue 
+                ######## only need to show correct rethinking
+                if res<0.5:
+                    drop_reasons['incorrect'] += 1 
                     continue 
                 add_this = False 
                 if not is_eval:

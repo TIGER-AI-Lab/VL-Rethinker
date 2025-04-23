@@ -182,12 +182,12 @@ bash ./scripts/eval_7b.sh [benchmark] [modelname] [modelpath]
 ### Training
 Run the following.
 ```bash
-bash ./scripts/train_vlm_7b.sh
+bash ./scripts/train_vlm_multi.sh
 ```
-Hyperparameters:
-(TBA)
 
 
+## Acknowledgement
+This project adapts from [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF) and [LMM-R1](https://github.com/TideDra/lmm-r1), released under the Apache License 2.0. Thanks for their open-source contributions!
 
 ## Citation
 If you find this work useful, please give us a free cite:
