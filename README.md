@@ -6,12 +6,12 @@
 <img style="height:22pt" src="https://img.shields.io/badge/-Code-green?style=flat&logo=github"></a>
 <a target="_blank" href="https://tiger-ai-lab.github.io/VL-Rethinker/">
 <img style="height:22pt" src="https://img.shields.io/badge/-🌐%20Website-blue?style=flat"></a>
-<!-- <a target="_blank" href="">
-<img style="height:22pt" src="https://img.shields.io/badge/-🤗%20Dataset-red?style=flat"></a> -->
 <a target="_blank" href="https://huggingface.co/TIGER-Lab/VL-Rethinker-7B">
 <img style="height:22pt" src="https://img.shields.io/badge/-🤗%20Models-red?style=flat"></a>
-<!-- <a target="_blank" href="https://twitter.com/DongfuJiang/status/1805438506137010326">
-<img style="height:22pt" src="https://img.shields.io/badge/-Tweet-blue?style=flat&logo=twitter"></a> -->
+<a target="_blank" href="https://huggingface.co/datasets/TIGER-Lab/ViRL39K">
+<img style="height:22pt" src="https://img.shields.io/badge/-🤗%20Dataset-blue?style=flat"></a>
+<a target="_blank" href="https://huggingface.co/spaces/TIGER-Lab/VL-Rethinker">
+<img style="height:22pt" src="https://img.shields.io/badge/-🤗%20Demo-yellow?style=flat"></a>
 <br>
 
 
