@@ -17,8 +17,9 @@ export NCCL_DEBUG=INFO
 export CUDA_LAUNCH_BLOCKING=1
 export HOST_IP=0.0.0.0
 export VLLM_HOST_IP=0.0.0.0
-
-working_dir=/path/to/VL-Rethinker
+export WANDB_MODE="offline"
+export WANDB_API_KEY="null"
+working_dir=${working_dir:"/path/to/VL-Rethinker"}
 cd $working_dir
 export HF_ENDPOINT=https://hf-mirror.com
 nnode=$WORLD_SIZE
@@ -100,7 +101,7 @@ else
     )
 fi
 
-LD_LIBRARY_PATH_VALUE=/path/to/nvidia/nvjitlink/lib:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH_VALUE=$nvj_path:$LD_LIBRARY_PATH
 
 RUNTIME_ENV_JSON="{\"env_vars\": {\"RAY_DEBUG\": \"legacy\", \"LD_LIBRARY_PATH\": \"$LD_LIBRARY_PATH_VALUE\"}}"
 

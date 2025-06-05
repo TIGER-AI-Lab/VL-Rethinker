@@ -20,7 +20,7 @@ from datasets import interleave_datasets, load_dataset
 from openrlhf.models.actor import Actor
 from openrlhf.models.utils import compute_approx_kl, compute_reward, masked_mean, unpacking_samples
 from openrlhf.utils.logging_utils import init_logger
-from openrlhf.utils.remote_rm_utils import remote_rm_fn, remote_rm_fn_ray
+# from openrlhf.utils.remote_rm_utils import remote_rm_fn, remote_rm_fn_ray
 from collections import defaultdict
 
 import datasets

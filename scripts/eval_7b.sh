@@ -1,4 +1,4 @@
-benchmark=${1}
+benchmark=m3u
 if  [[ "$benchmark" == "m3u" ]]; then 
     export testdata="./data/MMMUPro_full.parquet"
 elif  [[ "$benchmark" == "m3u_val" ]]; then 
@@ -18,8 +18,9 @@ fi
 
 export num_vllm=8
 export num_gpus=8
-export tagname=eval_${2}_${benchmark}
-export policy=${3} # /home/ma-user/work/data_mllm/pretrain_models/Qwen2.5-VL/Qwen2.5-VL-7B-Instruct
-
+export tagname=eval_debug_${benchmark}
+export policy=/path/to/policy
+export nvj_path=""
+export working_dir=/path/to/dir
 bash ./scripts/eval_vlm_new.sh
 
